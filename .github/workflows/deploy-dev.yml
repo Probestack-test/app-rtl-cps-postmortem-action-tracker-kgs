@@ -21,6 +21,9 @@ jobs:
       PROB_SERVICE_TOKEN_CLIENT_SECRET: ${{ secrets.PROB_SERVICE_TOKEN_CLIENT_SECRET }}
       PROB_SERVICE_TOKEN_TENANT_ID: ${{ secrets.PROB_SERVICE_TOKEN_TENANT_ID }}
       cicd_profile_id: ${{ secrets.CICD_PROFILE_ID }}
+      FLOW_CHANGE_ID: ${{ secrets.FLOW_CHANGE_ID }}
+      RESOURCE_ID: ${{ secrets.RESOURCE_ID }}
+      FLOW_TYPE: ${{ secrets.FLOW_TYPE }}
 
     with:
       kong_config_path: kong/kong.yaml
