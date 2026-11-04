@@ -1,0 +1,900 @@
+openapi: 3.0.3
+info:
+  title: Postmortem Action Tracker
+  version: 1.0.0
+  description: |
+    Tracks action items from postmortems and incident reviews to completion. 
+    Solves the chronic problem of postmortem action items that never get done — 
+    "we identified 8 action items, 2 got done, the same incident happened again 
+    3 months later." Enforces ownership, deadlines, verification, and surfaces 
+    aging items before they become repeat incidents.
+  contact:
+    name: ForgeSphere Incident Management
+    email: incidents@forgesphere.example.com
+
+servers:
+  - url: https://actiontracker.forgesphere.lightning.com/v1
+    description: Production Server
+  - url: http://localhost:8142/v1
+    description: Local Development Server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Action Items
+    description: Create, list, and update postmortem action items.
+  - name: Analytics
+    description: Completion rates, aging, and team performance.
+
+paths:
+  # ==================== 1 & 2. ACTION ITEMS (POST + GET) ====================
+  /action-items:
+    post:
+      tags: [Action Items]
+      summary: Create one or more action items from a postmortem
+      description: |
+        Creates action items tied to an incident or postmortem. Each item 
+        captures what needs to be done, who owns it, and by when. Supports 
+        bulk creation — a single postmortem typically yields 5-15 action 
+        items. The tracker will remind, escalate, and surface aging items 
+        automatically until each is closed.
+      operationId: createActionItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [incidentId, postmortemId, items]
+              properties:
+                incidentId:
+                  type: string
+                  description: "Source incident reference."
+                  example: "INC-2050"
+                postmortemId:
+                  type: string
+                  description: "Postmortem document reference."
+                  example: "PM-2050-2026-11-03"
+                postmortemUrl:
+                  type: string
+                  format: uri
+                  description: "Link to the full postmortem."
+                  example: "https://wiki.forgesphere.example.com/postmortems/PM-2050"
+                severity:
+                  type: string
+                  enum: [SEV1, SEV2, SEV3, SEV4]
+                  description: "Incident severity — drives deadline enforcement."
+                  example: "SEV2"
+                items:
+                  type: array
+                  description: "List of action items from the postmortem."
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [title, description, category, owner, priority, dueDate]
+                    properties:
+                      title:
+                        type: string
+                        description: "Short, actionable title."
+                        example: "Add exponential backoff to payment retries"
+                      description:
+                        type: string
+                        description: "Detailed context and success criteria."
+                        example: "Current retry logic retries immediately; causes connection pool exhaustion under load."
+                      category:
+                        type: string
+                        enum: [PREVENT, DETECT, MITIGATE, PROCESS, DOCUMENTATION, AUTOMATION]
+                        description: "Category of the fix."
+                        example: "PREVENT"
+                      owner:
+                        type: string
+                        description: "Engineer or team responsible."
+                        example: "amit.kumar@forgesphere.example.com"
+                      ownerTeam:
+                        type: string
+                        example: "payments-team"
+                      priority:
+                        type: string
+                        enum: [P0, P1, P2, P3]
+                        description: "P0 = must fix before next deploy; P3 = nice to have."
+                        example: "P0"
+                      dueDate:
+                        type: string
+                        format: date
+                        description: "Target completion date."
+                        example: "2026-11-20"
+                      estimatedEffortHours:
+                        type: integer
+                        description: "Rough effort estimate."
+                        example: 16
+                      linkedTickets:
+                        type: array
+                        description: "Related tickets in JIRA/Linear/GitHub."
+                        items:
+                          type: string
+                        example: ["JIRA-4821"]
+                      acceptanceCriteria:
+                        type: array
+                        description: "Concrete criteria to verify completion."
+                        items:
+                          type: string
+                        example:
+                          - "Retries use exponential backoff with jitter"
+                          - "Integration test simulates 5 consecutive failures"
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example: ["retry-logic", "connection-pool"]
+                createdBy:
+                  type: string
+                  description: "Engineer or bot submitting these items."
+                  example: "incident-commander@forgesphere.example.com"
+                notifyChannels:
+                  type: array
+                  description: "Where to send assignment and reminder notifications."
+                  items:
+                    type: string
+                    enum: [EMAIL, SLACK, JIRA, PAGERDUTY, WEBHOOK]
+                  example: ["SLACK", "EMAIL"]
+      responses:
+        '201':
+          description: Action items created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionItemBatch'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Action items for this postmortem already exist (duplicate).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    get:
+      tags: [Action Items]
+      summary: List and search action items across all postmortems
+      description: |
+        Returns a filterable, searchable list of all action items. Used by 
+        engineers ("what's on my plate?"), managers ("what's aging in my 
+        team?"), and executives ("how much incident debt do we have?"). 
+        Supports full-text search across titles and descriptions.
+      operationId: listActionItems
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Full-text search across title and description."
+          example: "connection pool"
+        - name: owner
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Filter by owner (engineer email)."
+          example: "amit.kumar@forgesphere.example.com"
+        - name: ownerTeam
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Filter by owning team."
+          example: "payments-team"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [OPEN, IN_PROGRESS, BLOCKED, COMPLETED, VERIFIED, CANCELLED, WONT_FIX]
+          description: "Filter by status."
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [P0, P1, P2, P3]
+          description: "Filter by priority."
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PREVENT, DETECT, MITIGATE, PROCESS, DOCUMENTATION, AUTOMATION]
+          description: "Filter by fix category."
+        - name: incidentId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Filter to items from a specific incident."
+          example: "INC-2050"
+        - name: overdueOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: "Only return overdue items."
+          example: true
+        - name: agingDays
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: "Only return items older than this many days."
+          example: 30
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DUE_DATE, PRIORITY, CREATED_AT, AGE, OWNER]
+            default: PRIORITY
+          description: "Sort order."
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: "Page number (zero-based)."
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: "Number of items per page."
+      responses:
+        '200':
+          description: List of action items retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionItemList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== 3. UPDATE ACTION ITEM ====================
+  /action-items/{itemId}:
+    patch:
+      tags: [Action Items]
+      summary: Update an action item (status, owner, deadline, verification)
+      description: |
+        Updates one or more fields of an action item. Most common operations: 
+        mark as IN_PROGRESS, reassign owner, extend deadline (with reason), 
+        mark as COMPLETED, then VERIFIED (by someone other than owner). 
+        Verification is a separate step to prevent "I marked it done but 
+        it wasn't" patterns.
+      operationId: updateActionItem
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: "Unique identifier of the action item."
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [OPEN, IN_PROGRESS, BLOCKED, COMPLETED, VERIFIED, CANCELLED, WONT_FIX]
+                  description: "New status."
+                  example: "IN_PROGRESS"
+                owner:
+                  type: string
+                  description: "Reassign owner."
+                  example: "priya.sharma@forgesphere.example.com"
+                priority:
+                  type: string
+                  enum: [P0, P1, P2, P3]
+                  description: "Update priority."
+                  example: "P1"
+                dueDate:
+                  type: string
+                  format: date
+                  description: "New deadline."
+                  example: "2026-11-30"
+                completionComment:
+                  type: string
+                  description: "Required when status = COMPLETED. What was done."
+                  example: "Added exponential backoff with jitter, max 5 retries, 30s cap."
+                completionEvidenceUrl:
+                  type: string
+                  format: uri
+                  description: "Link to PR, deployment, or verification artifact."
+                  example: "https://github.com/forgesphere/payment-service/pull/4821"
+                verificationComment:
+                  type: string
+                  description: "Required when status = VERIFIED. How verified."
+                  example: "Load test confirmed connection pool stable under 500rps."
+                verifiedBy:
+                  type: string
+                  description: "Required when status = VERIFIED. Must differ from owner."
+                  example: "tech-lead@forgesphere.example.com"
+                deadlineExtensionReason:
+                  type: string
+                  description: "Required when dueDate is extended."
+                  example: "Dependency on library upgrade; awaiting security review."
+                blockedReason:
+                  type: string
+                  description: "Required when status = BLOCKED."
+                  example: "Waiting on infrastructure team to provision new Redis cluster."
+                wontFixReason:
+                  type: string
+                  description: "Required when status = WONT_FIX."
+                  example: "Mitigated by upstream provider fix; not reproducible."
+                updatedBy:
+                  type: string
+                  description: "Who is making this update."
+                  example: "amit.kumar@forgesphere.example.com"
+      responses:
+        '200':
+          description: Action item updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Update violates rules (e.g., self-verification, missing required field).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # ==================== 4. GET ANALYTICS ====================
+  /analytics:
+    get:
+      tags: [Analytics]
+      summary: Get analytics on action item completion and aging
+      description: |
+        Returns aggregated analytics — completion rates by team, aging 
+        distribution, repeat-incident correlation, and top aging offenders. 
+        Used by engineering leadership to identify chronic non-completion 
+        patterns and hold teams accountable for learning from incidents.
+      operationId: getAnalytics
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [TEAM, ENGINEER, ORGANIZATION, CATEGORY, PRIORITY]
+          description: "Aggregation scope."
+          example: "TEAM"
+        - name: scopeId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Required when scope = TEAM or ENGINEER."
+          example: "payments-team"
+        - name: windowDays
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 90
+            minimum: 7
+            maximum: 365
+          description: "Analysis window in days."
+          example: 90
+        - name: includeRepeatIncidentCorrelation
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: "Whether to analyze how often unresolved items correlate with repeat incidents."
+          example: true
+      responses:
+        '200':
+          description: Analytics report retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionItemAnalytics'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT token issued to engineers, SREs, and engineering leaders."
+
+  schemas:
+    ActionItemBatch:
+      type: object
+      required: [batchId, incidentId, items, createdAt]
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          example: "9c8f1a3b-6d7e-4a12-8f5e-123456789abc"
+        incidentId:
+          type: string
+          example: "INC-2050"
+        postmortemId:
+          type: string
+          example: "PM-2050-2026-11-03"
+        totalCreated:
+          type: integer
+          example: 8
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionItem'
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          example: "incident-commander@forgesphere.example.com"
+
+    ActionItem:
+      type: object
+      required: [itemId, incidentId, title, description, category, owner, priority, status, dueDate, createdAt]
+      properties:
+        itemId:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+        incidentId:
+          type: string
+          example: "INC-2050"
+        postmortemId:
+          type: string
+          example: "PM-2050-2026-11-03"
+        title:
+          type: string
+          example: "Add exponential backoff to payment retries"
+        description:
+          type: string
+          example: "Current retry logic retries immediately; causes connection pool exhaustion under load."
+        category:
+          type: string
+          enum: [PREVENT, DETECT, MITIGATE, PROCESS, DOCUMENTATION, AUTOMATION]
+          example: "PREVENT"
+        owner:
+          type: string
+          example: "amit.kumar@forgesphere.example.com"
+        ownerTeam:
+          type: string
+          example: "payments-team"
+        priority:
+          type: string
+          enum: [P0, P1, P2, P3]
+          example: "P0"
+        status:
+          type: string
+          enum: [OPEN, IN_PROGRESS, BLOCKED, COMPLETED, VERIFIED, CANCELLED, WONT_FIX]
+          example: "IN_PROGRESS"
+        dueDate:
+          type: string
+          format: date
+          example: "2026-11-20"
+        estimatedEffortHours:
+          type: integer
+          example: 16
+        createdBy:
+          type: string
+          example: "incident-commander@forgesphere.example.com"
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdatedAt:
+          type: string
+          format: date-time
+        lastUpdatedBy:
+          type: string
+          example: "amit.kumar@forgesphere.example.com"
+        completedAt:
+          type: string
+          format: date-time
+        verifiedAt:
+          type: string
+          format: date-time
+        verifiedBy:
+          type: string
+          example: "tech-lead@forgesphere.example.com"
+        completionComment:
+          type: string
+          example: "Added exponential backoff with jitter, max 5 retries, 30s cap."
+        completionEvidenceUrl:
+          type: string
+          example: "https://github.com/forgesphere/payment-service/pull/4821"
+        verificationComment:
+          type: string
+          example: "Load test confirmed connection pool stable under 500rps."
+        ageDays:
+          type: integer
+          description: "Days since creation."
+          example: 12
+        daysUntilDue:
+          type: integer
+          description: "Days remaining until due date (negative = overdue)."
+          example: 8
+        isOverdue:
+          type: boolean
+          example: false
+        isAging:
+          type: boolean
+          description: "True when age exceeds threshold without progress."
+          example: false
+        agingDaysOverThreshold:
+          type: integer
+          description: "How many days past aging threshold (0 if not aging)."
+          example: 0
+        linkedTickets:
+          type: array
+          items:
+            type: string
+          example: ["JIRA-4821"]
+        acceptanceCriteria:
+          type: array
+          items:
+            type: string
+          example:
+            - "Retries use exponential backoff with jitter"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["retry-logic", "connection-pool"]
+        blockedReason:
+          type: string
+        deadlineExtensionReason:
+          type: string
+        wontFixReason:
+          type: string
+        deadlineExtensionCount:
+          type: integer
+          example: 0
+        auditReference:
+          type: string
+          example: "audit://action-tracker/item-a1b2c3d4"
+
+    ActionItemList:
+      type: object
+      required: [content, totalElements, totalPages]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionItem'
+        totalElements:
+          type: integer
+          example: 247
+        totalPages:
+          type: integer
+          example: 13
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 20
+        summary:
+          type: object
+          properties:
+            totalItems:
+              type: integer
+              example: 247
+            open:
+              type: integer
+              example: 82
+            inProgress:
+              type: integer
+              example: 34
+            blocked:
+              type: integer
+              example: 8
+            completed:
+              type: integer
+              example: 98
+            verified:
+              type: integer
+              example: 21
+            overdue:
+              type: integer
+              example: 15
+            aging30dPlus:
+              type: integer
+              example: 42
+
+    ActionItemAnalytics:
+      type: object
+      required: [scope, windowDays, generatedAt, completionMetrics, agingDistribution, topAgingItems]
+      properties:
+        scope:
+          type: string
+          enum: [TEAM, ENGINEER, ORGANIZATION, CATEGORY, PRIORITY]
+          example: "TEAM"
+        scopeId:
+          type: string
+          example: "payments-team"
+        windowDays:
+          type: integer
+          example: 90
+        generatedAt:
+          type: string
+          format: date-time
+        completionMetrics:
+          type: object
+          required: [totalItems, completed, verified, completionRatePercent, avgDaysToComplete]
+          properties:
+            totalItems:
+              type: integer
+              example: 87
+            completed:
+              type: integer
+              example: 34
+            verified:
+              type: integer
+              example: 21
+            cancelled:
+              type: integer
+              example: 3
+            wontFix:
+              type: integer
+              example: 2
+            completionRatePercent:
+              type: number
+              format: double
+              example: 63.2
+            verificationRatePercent:
+              type: number
+              format: double
+              example: 61.8
+            avgDaysToComplete:
+              type: number
+              format: double
+              example: 18.5
+            medianDaysToComplete:
+              type: number
+              format: double
+              example: 14.0
+            p90DaysToComplete:
+              type: number
+              format: double
+              example: 42.0
+        agingDistribution:
+          type: array
+          description: "How old are the currently open items?"
+          items:
+            type: object
+            required: [bucket, count]
+            properties:
+              bucket:
+                type: string
+                enum: [0_7_DAYS, 8_30_DAYS, 31_60_DAYS, 61_90_DAYS, OVER_90_DAYS]
+                example: "31_60_DAYS"
+              count:
+                type: integer
+                example: 18
+              percent:
+                type: number
+                format: double
+                example: 22.0
+        breakdownByCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+                enum: [PREVENT, DETECT, MITIGATE, PROCESS, DOCUMENTATION, AUTOMATION]
+                example: "PREVENT"
+              total:
+                type: integer
+                example: 32
+              completed:
+                type: integer
+                example: 24
+              completionRatePercent:
+                type: number
+                format: double
+                example: 75.0
+        breakdownByPriority:
+          type: array
+          items:
+            type: object
+            properties:
+              priority:
+                type: string
+                enum: [P0, P1, P2, P3]
+                example: "P0"
+              total:
+                type: integer
+                example: 12
+              completed:
+                type: integer
+                example: 11
+              completionRatePercent:
+                type: number
+                format: double
+                example: 91.7
+              avgDaysToComplete:
+                type: number
+                format: double
+                example: 8.2
+        topAgingItems:
+          type: array
+          description: "Oldest uncompleted items — highest risk."
+          items:
+            type: object
+            required: [itemId, title, owner, ageDays, priority]
+            properties:
+              itemId:
+                type: string
+                format: uuid
+                example: "b1a2c3d4-e5f6-7890-1234-567890abcdef"
+              title:
+                type: string
+                example: "Improve retry metrics dashboard"
+              owner:
+                type: string
+                example: "amit.kumar@forgesphere.example.com"
+              ageDays:
+                type: integer
+                example: 145
+              priority:
+                type: string
+                enum: [P0, P1, P2, P3]
+                example: "P1"
+              status:
+                type: string
+                enum: [OPEN, IN_PROGRESS, BLOCKED]
+                example: "OPEN"
+              incidentId:
+                type: string
+                example: "INC-1876"
+              deadlineExtensions:
+                type: integer
+                example: 3
+        repeatIncidentCorrelation:
+          type: object
+          description: "Present if includeRepeatIncidentCorrelation=true."
+          properties:
+            totalRepeatIncidents:
+              type: integer
+              example: 12
+            percentWithOpenActionItems:
+              type: number
+              format: double
+              example: 75.0
+            topUnresolvedCategories:
+              type: array
+              items:
+                type: string
+              example: ["PREVENT", "DETECT"]
+            note:
+              type: string
+              example: "9 of 12 repeat incidents had P0/P1 items still open from the original postmortem."
+        topOwnersByCompletionRate:
+          type: array
+          description: "Engineers with best completion rates."
+          items:
+            type: object
+            properties:
+              owner:
+                type: string
+                example: "priya.sharma@forgesphere.example.com"
+              completed:
+                type: integer
+                example: 15
+              assigned:
+                type: integer
+                example: 16
+              completionRatePercent:
+                type: number
+                format: double
+                example: 93.75
+              avgDaysToComplete:
+                type: number
+                format: double
+                example: 11.2
+        bottomOwnersByCompletionRate:
+          type: array
+          description: "Engineers with lowest completion rates."
+          items:
+            type: object
+            properties:
+              owner:
+                type: string
+                example: "rahul.verma@forgesphere.example.com"
+              completed:
+                type: integer
+                example: 2
+              assigned:
+                type: integer
+                example: 9
+              completionRatePercent:
+                type: number
+                format: double
+                example: 22.2
+              avgDaysToComplete:
+                type: number
+                format: double
+                example: 48.5
+        recommendations:
+          type: array
+          items:
+            type: string
+          example:
+            - "Team has 42 items aging 30+ days — prioritise cleanup sprint."
+            - "P0 completion rate is 91.7% — good. P2/P3 at 38% — needs focus."
+            - "75% of repeat incidents had unresolved items — action item follow-through is the bottleneck."
+
+    ErrorResponse:
+      type: object
+      required: [status, message, timestamp, path]
+      properties:
+        status:
+          type: integer
+          example: 409
+        errorCode:
+          type: string
+          example: "SELF_VERIFICATION_NOT_ALLOWED"
+        message:
+          type: string
+          example: "verification must be performed by someone other than the item owner."
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: "/v1/action-items/a1b2c3d4"
+        serviceTransactionId:
+          type: string
+          example: "523f52b2-64a5-465e-b245-3efbe78f70ae"
+
+  responses:
+    BadRequest:
+      description: Invalid request payload or missing required fields.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Action item ID not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

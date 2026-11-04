@@ -1,0 +1,89 @@
+_format_version: "3.0"
+_transform: true
+
+########################################################
+# SERVICES
+########################################################
+
+services:
+  - name: postmortem-action-tracker
+    host: postmortem-action-tracker
+    port: 443
+    protocol: https
+    path: /api
+    retries: 5
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    routes:
+      - name: postmortem-action-tracker-get-api-v1-payments-action-items
+        protocols:
+          - https
+          - http
+        methods:
+          - GET
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/action-items
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: postmortem-action-tracker-post-api-v1-payments-action-items
+        protocols:
+          - https
+          - http
+        methods:
+          - POST
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/action-items
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: postmortem-action-tracker-patch-api-v1-payments-action-items-itemid
+        protocols:
+          - https
+          - http
+        methods:
+          - PATCH
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/action-items/{itemId}
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+      - name: postmortem-action-tracker-get-api-v1-payments-analytics
+        protocols:
+          - https
+          - http
+        methods:
+          - GET
+        hosts:
+          - api.example.com
+        paths:
+          - /api/v1/payments/analytics
+        strip_path: true
+        preserve_host: false
+        https_redirect_status_code: 426
+
+########################################################
+# PLUGINS
+########################################################
+
+plugins:
+  []
+
+########################################################
+# UPSTREAMS + TARGETS
+########################################################
+
+upstreams:
+  - name: postmortem-action-tracker
+    algorithm: round-robin
+    slots: 10000
+    targets:
+      - target: api.example.com:443
+        weight: 100
