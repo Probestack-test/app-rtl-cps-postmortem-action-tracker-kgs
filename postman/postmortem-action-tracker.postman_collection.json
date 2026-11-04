@@ -1,0 +1,1201 @@
+{
+  "info": {
+    "name": "Postmortem Action Tracker Postman Collection",
+    "description": "Tracks action items from postmortems and incident reviews to completion. \nSolves the chronic problem of postmortem action items that never get done — \n\"we identified 8 action items, 2 got done, the same incident happened again \n3 months later.\" Enforces ownership, deadlines, verification, and surfaces \naging items before they become repeat incidents.\n\nOpenAPI version: 3.0.3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://actiontracker.forgesphere.lightning.com/v1",
+      "type": "string",
+      "description": "Override with the base URL of the deployed Kong gateway."
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "q",
+      "value": "",
+      "type": "string",
+      "description": "Full-text search across title and description."
+    },
+    {
+      "key": "owner",
+      "value": "",
+      "type": "string",
+      "description": "Filter by owner (engineer email)."
+    },
+    {
+      "key": "ownerTeam",
+      "value": "",
+      "type": "string",
+      "description": "Filter by owning team."
+    },
+    {
+      "key": "status",
+      "value": "",
+      "type": "string",
+      "description": "Filter by status."
+    },
+    {
+      "key": "priority",
+      "value": "",
+      "type": "string",
+      "description": "Filter by priority."
+    },
+    {
+      "key": "category",
+      "value": "",
+      "type": "string",
+      "description": "Filter by fix category."
+    },
+    {
+      "key": "incidentId",
+      "value": "",
+      "type": "string",
+      "description": "Filter to items from a specific incident."
+    },
+    {
+      "key": "overdueOnly",
+      "value": "",
+      "type": "string",
+      "description": "Only return overdue items."
+    },
+    {
+      "key": "agingDays",
+      "value": "",
+      "type": "string",
+      "description": "Only return items older than this many days."
+    },
+    {
+      "key": "sortBy",
+      "value": "",
+      "type": "string",
+      "description": "Sort order."
+    },
+    {
+      "key": "page",
+      "value": "",
+      "type": "string",
+      "description": "Page number (zero-based)."
+    },
+    {
+      "key": "size",
+      "value": "",
+      "type": "string",
+      "description": "Number of items per page."
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string",
+      "description": "Unique identifier of the action item."
+    },
+    {
+      "key": "scope",
+      "value": "",
+      "type": "string",
+      "description": "Aggregation scope."
+    },
+    {
+      "key": "scopeId",
+      "value": "",
+      "type": "string",
+      "description": "Required when scope = TEAM or ENGINEER."
+    },
+    {
+      "key": "windowDays",
+      "value": "",
+      "type": "string",
+      "description": "Analysis window in days."
+    },
+    {
+      "key": "includeRepeatIncidentCorrelation",
+      "value": "",
+      "type": "string",
+      "description": "Whether to analyze how often unresolved items correlate with repeat incidents."
+    }
+  ],
+  "item": [
+    {
+      "name": "Create one or more action items from a postmortem",
+      "request": {
+        "method": "POST",
+        "description": "Create one or more action items from a postmortem\n\nResponses:\n- 201: Action items created successfully.\n- 400: Response\n- 409: Action items for this postmortem already exist (duplicate).\n- 500: Response",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/action-items",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "action-items"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [
+        {
+          "name": "201 Action items created successfully.",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Create one or more action items from a postmortem\n\nResponses:\n- 201: Action items created successfully.\n- 400: Response\n- 409: Action items for this postmortem already exist (duplicate).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Action items created successfully.",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Create one or more action items from a postmortem\n\nResponses:\n- 201: Action items created successfully.\n- 400: Response\n- 409: Action items for this postmortem already exist (duplicate).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "409 Action items for this postmortem already exist (duplicate).",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Create one or more action items from a postmortem\n\nResponses:\n- 201: Action items created successfully.\n- 400: Response\n- 409: Action items for this postmortem already exist (duplicate).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Action items for this postmortem already exist (duplicate).",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "POST",
+            "description": "Create one or more action items from a postmortem\n\nResponses:\n- 201: Action items created successfully.\n- 400: Response\n- 409: Action items for this postmortem already exist (duplicate).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "List and search action items across all postmortems",
+      "request": {
+        "method": "GET",
+        "description": "List and search action items across all postmortems\n\nResponses:\n- 200: List of action items retrieved successfully.\n- 400: Response\n- 500: Response",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/action-items?q={{q}}&owner={{owner}}&ownerTeam={{ownerTeam}}&status={{status}}&priority={{priority}}&category={{category}}&incidentId={{incidentId}}&overdueOnly={{overdueOnly}}&agingDays={{agingDays}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "action-items"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{q}}",
+              "disabled": true,
+              "description": "Full-text search across title and description."
+            },
+            {
+              "key": "owner",
+              "value": "{{owner}}",
+              "disabled": true,
+              "description": "Filter by owner (engineer email)."
+            },
+            {
+              "key": "ownerTeam",
+              "value": "{{ownerTeam}}",
+              "disabled": true,
+              "description": "Filter by owning team."
+            },
+            {
+              "key": "status",
+              "value": "{{status}}",
+              "disabled": true,
+              "description": "Filter by status."
+            },
+            {
+              "key": "priority",
+              "value": "{{priority}}",
+              "disabled": true,
+              "description": "Filter by priority."
+            },
+            {
+              "key": "category",
+              "value": "{{category}}",
+              "disabled": true,
+              "description": "Filter by fix category."
+            },
+            {
+              "key": "incidentId",
+              "value": "{{incidentId}}",
+              "disabled": true,
+              "description": "Filter to items from a specific incident."
+            },
+            {
+              "key": "overdueOnly",
+              "value": "{{overdueOnly}}",
+              "disabled": true,
+              "description": "Only return overdue items."
+            },
+            {
+              "key": "agingDays",
+              "value": "{{agingDays}}",
+              "disabled": true,
+              "description": "Only return items older than this many days."
+            },
+            {
+              "key": "sortBy",
+              "value": "{{sortBy}}",
+              "disabled": true,
+              "description": "Sort order."
+            },
+            {
+              "key": "page",
+              "value": "{{page}}",
+              "disabled": true,
+              "description": "Page number (zero-based)."
+            },
+            {
+              "key": "size",
+              "value": "{{size}}",
+              "disabled": true,
+              "description": "Number of items per page."
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 List of action items retrieved successfully.",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search action items across all postmortems\n\nResponses:\n- 200: List of action items retrieved successfully.\n- 400: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/action-items?q={{q}}&owner={{owner}}&ownerTeam={{ownerTeam}}&status={{status}}&priority={{priority}}&category={{category}}&incidentId={{incidentId}}&overdueOnly={{overdueOnly}}&agingDays={{agingDays}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search across title and description."
+                },
+                {
+                  "key": "owner",
+                  "value": "{{owner}}",
+                  "disabled": true,
+                  "description": "Filter by owner (engineer email)."
+                },
+                {
+                  "key": "ownerTeam",
+                  "value": "{{ownerTeam}}",
+                  "disabled": true,
+                  "description": "Filter by owning team."
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true,
+                  "description": "Filter by status."
+                },
+                {
+                  "key": "priority",
+                  "value": "{{priority}}",
+                  "disabled": true,
+                  "description": "Filter by priority."
+                },
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by fix category."
+                },
+                {
+                  "key": "incidentId",
+                  "value": "{{incidentId}}",
+                  "disabled": true,
+                  "description": "Filter to items from a specific incident."
+                },
+                {
+                  "key": "overdueOnly",
+                  "value": "{{overdueOnly}}",
+                  "disabled": true,
+                  "description": "Only return overdue items."
+                },
+                {
+                  "key": "agingDays",
+                  "value": "{{agingDays}}",
+                  "disabled": true,
+                  "description": "Only return items older than this many days."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "List of action items retrieved successfully.",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search action items across all postmortems\n\nResponses:\n- 200: List of action items retrieved successfully.\n- 400: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/action-items?q={{q}}&owner={{owner}}&ownerTeam={{ownerTeam}}&status={{status}}&priority={{priority}}&category={{category}}&incidentId={{incidentId}}&overdueOnly={{overdueOnly}}&agingDays={{agingDays}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search across title and description."
+                },
+                {
+                  "key": "owner",
+                  "value": "{{owner}}",
+                  "disabled": true,
+                  "description": "Filter by owner (engineer email)."
+                },
+                {
+                  "key": "ownerTeam",
+                  "value": "{{ownerTeam}}",
+                  "disabled": true,
+                  "description": "Filter by owning team."
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true,
+                  "description": "Filter by status."
+                },
+                {
+                  "key": "priority",
+                  "value": "{{priority}}",
+                  "disabled": true,
+                  "description": "Filter by priority."
+                },
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by fix category."
+                },
+                {
+                  "key": "incidentId",
+                  "value": "{{incidentId}}",
+                  "disabled": true,
+                  "description": "Filter to items from a specific incident."
+                },
+                {
+                  "key": "overdueOnly",
+                  "value": "{{overdueOnly}}",
+                  "disabled": true,
+                  "description": "Only return overdue items."
+                },
+                {
+                  "key": "agingDays",
+                  "value": "{{agingDays}}",
+                  "disabled": true,
+                  "description": "Only return items older than this many days."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "GET",
+            "description": "List and search action items across all postmortems\n\nResponses:\n- 200: List of action items retrieved successfully.\n- 400: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/action-items?q={{q}}&owner={{owner}}&ownerTeam={{ownerTeam}}&status={{status}}&priority={{priority}}&category={{category}}&incidentId={{incidentId}}&overdueOnly={{overdueOnly}}&agingDays={{agingDays}}&sortBy={{sortBy}}&page={{page}}&size={{size}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{q}}",
+                  "disabled": true,
+                  "description": "Full-text search across title and description."
+                },
+                {
+                  "key": "owner",
+                  "value": "{{owner}}",
+                  "disabled": true,
+                  "description": "Filter by owner (engineer email)."
+                },
+                {
+                  "key": "ownerTeam",
+                  "value": "{{ownerTeam}}",
+                  "disabled": true,
+                  "description": "Filter by owning team."
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true,
+                  "description": "Filter by status."
+                },
+                {
+                  "key": "priority",
+                  "value": "{{priority}}",
+                  "disabled": true,
+                  "description": "Filter by priority."
+                },
+                {
+                  "key": "category",
+                  "value": "{{category}}",
+                  "disabled": true,
+                  "description": "Filter by fix category."
+                },
+                {
+                  "key": "incidentId",
+                  "value": "{{incidentId}}",
+                  "disabled": true,
+                  "description": "Filter to items from a specific incident."
+                },
+                {
+                  "key": "overdueOnly",
+                  "value": "{{overdueOnly}}",
+                  "disabled": true,
+                  "description": "Only return overdue items."
+                },
+                {
+                  "key": "agingDays",
+                  "value": "{{agingDays}}",
+                  "disabled": true,
+                  "description": "Only return items older than this many days."
+                },
+                {
+                  "key": "sortBy",
+                  "value": "{{sortBy}}",
+                  "disabled": true,
+                  "description": "Sort order."
+                },
+                {
+                  "key": "page",
+                  "value": "{{page}}",
+                  "disabled": true,
+                  "description": "Page number (zero-based)."
+                },
+                {
+                  "key": "size",
+                  "value": "{{size}}",
+                  "disabled": true,
+                  "description": "Number of items per page."
+                }
+              ]
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "Update an action item (status, owner, deadline, verification)",
+      "request": {
+        "method": "PATCH",
+        "description": "Update an action item (status, owner, deadline, verification)\n\nResponses:\n- 200: Action item updated successfully.\n- 400: Response\n- 404: Response\n- 409: Update violates rules (e.g., self-verification, missing required field).\n- 500: Response",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/action-items/:itemId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "action-items",
+            ":itemId"
+          ],
+          "variable": [
+            {
+              "key": "itemId",
+              "value": "{{itemId}}",
+              "description": "Unique identifier of the action item."
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": [
+        {
+          "name": "200 Action item updated successfully.",
+          "originalRequest": {
+            "method": "PATCH",
+            "description": "Update an action item (status, owner, deadline, verification)\n\nResponses:\n- 200: Action item updated successfully.\n- 400: Response\n- 404: Response\n- 409: Update violates rules (e.g., self-verification, missing required field).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items/:itemId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items",
+                ":itemId"
+              ],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "description": "Unique identifier of the action item."
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Action item updated successfully.",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "PATCH",
+            "description": "Update an action item (status, owner, deadline, verification)\n\nResponses:\n- 200: Action item updated successfully.\n- 400: Response\n- 404: Response\n- 409: Update violates rules (e.g., self-verification, missing required field).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items/:itemId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items",
+                ":itemId"
+              ],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "description": "Unique identifier of the action item."
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "404",
+          "originalRequest": {
+            "method": "PATCH",
+            "description": "Update an action item (status, owner, deadline, verification)\n\nResponses:\n- 200: Action item updated successfully.\n- 400: Response\n- 404: Response\n- 409: Update violates rules (e.g., self-verification, missing required field).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items/:itemId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items",
+                ":itemId"
+              ],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "description": "Unique identifier of the action item."
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "404",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "409 Update violates rules (e.g., self-verification, missing required field).",
+          "originalRequest": {
+            "method": "PATCH",
+            "description": "Update an action item (status, owner, deadline, verification)\n\nResponses:\n- 200: Action item updated successfully.\n- 400: Response\n- 404: Response\n- 409: Update violates rules (e.g., self-verification, missing required field).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items/:itemId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items",
+                ":itemId"
+              ],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "description": "Unique identifier of the action item."
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "Update violates rules (e.g., self-verification, missing required field).",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "PATCH",
+            "description": "Update an action item (status, owner, deadline, verification)\n\nResponses:\n- 200: Action item updated successfully.\n- 400: Response\n- 404: Response\n- 409: Update violates rules (e.g., self-verification, missing required field).\n- 500: Response",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/action-items/:itemId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "action-items",
+                ":itemId"
+              ],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": "{{itemId}}",
+                  "description": "Unique identifier of the action item."
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    },
+    {
+      "name": "Get analytics on action item completion and aging",
+      "request": {
+        "method": "GET",
+        "description": "Get analytics on action item completion and aging\n\nResponses:\n- 200: Analytics report retrieved successfully.\n- 400: Response\n- 404: Response\n- 500: Response",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/analytics?scope={{scope}}&scopeId={{scopeId}}&windowDays={{windowDays}}&includeRepeatIncidentCorrelation={{includeRepeatIncidentCorrelation}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "analytics"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "{{scope}}",
+              "disabled": false,
+              "description": "Aggregation scope."
+            },
+            {
+              "key": "scopeId",
+              "value": "{{scopeId}}",
+              "disabled": true,
+              "description": "Required when scope = TEAM or ENGINEER."
+            },
+            {
+              "key": "windowDays",
+              "value": "{{windowDays}}",
+              "disabled": true,
+              "description": "Analysis window in days."
+            },
+            {
+              "key": "includeRepeatIncidentCorrelation",
+              "value": "{{includeRepeatIncidentCorrelation}}",
+              "disabled": true,
+              "description": "Whether to analyze how often unresolved items correlate with repeat incidents."
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 Analytics report retrieved successfully.",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get analytics on action item completion and aging\n\nResponses:\n- 200: Analytics report retrieved successfully.\n- 400: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics?scope={{scope}}&scopeId={{scopeId}}&windowDays={{windowDays}}&includeRepeatIncidentCorrelation={{includeRepeatIncidentCorrelation}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "{{scope}}",
+                  "disabled": false,
+                  "description": "Aggregation scope."
+                },
+                {
+                  "key": "scopeId",
+                  "value": "{{scopeId}}",
+                  "disabled": true,
+                  "description": "Required when scope = TEAM or ENGINEER."
+                },
+                {
+                  "key": "windowDays",
+                  "value": "{{windowDays}}",
+                  "disabled": true,
+                  "description": "Analysis window in days."
+                },
+                {
+                  "key": "includeRepeatIncidentCorrelation",
+                  "value": "{{includeRepeatIncidentCorrelation}}",
+                  "disabled": true,
+                  "description": "Whether to analyze how often unresolved items correlate with repeat incidents."
+                }
+              ]
+            }
+          },
+          "status": "Analytics report retrieved successfully.",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "400",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get analytics on action item completion and aging\n\nResponses:\n- 200: Analytics report retrieved successfully.\n- 400: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics?scope={{scope}}&scopeId={{scopeId}}&windowDays={{windowDays}}&includeRepeatIncidentCorrelation={{includeRepeatIncidentCorrelation}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "{{scope}}",
+                  "disabled": false,
+                  "description": "Aggregation scope."
+                },
+                {
+                  "key": "scopeId",
+                  "value": "{{scopeId}}",
+                  "disabled": true,
+                  "description": "Required when scope = TEAM or ENGINEER."
+                },
+                {
+                  "key": "windowDays",
+                  "value": "{{windowDays}}",
+                  "disabled": true,
+                  "description": "Analysis window in days."
+                },
+                {
+                  "key": "includeRepeatIncidentCorrelation",
+                  "value": "{{includeRepeatIncidentCorrelation}}",
+                  "disabled": true,
+                  "description": "Whether to analyze how often unresolved items correlate with repeat incidents."
+                }
+              ]
+            }
+          },
+          "status": "400",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "404",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get analytics on action item completion and aging\n\nResponses:\n- 200: Analytics report retrieved successfully.\n- 400: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics?scope={{scope}}&scopeId={{scopeId}}&windowDays={{windowDays}}&includeRepeatIncidentCorrelation={{includeRepeatIncidentCorrelation}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "{{scope}}",
+                  "disabled": false,
+                  "description": "Aggregation scope."
+                },
+                {
+                  "key": "scopeId",
+                  "value": "{{scopeId}}",
+                  "disabled": true,
+                  "description": "Required when scope = TEAM or ENGINEER."
+                },
+                {
+                  "key": "windowDays",
+                  "value": "{{windowDays}}",
+                  "disabled": true,
+                  "description": "Analysis window in days."
+                },
+                {
+                  "key": "includeRepeatIncidentCorrelation",
+                  "value": "{{includeRepeatIncidentCorrelation}}",
+                  "disabled": true,
+                  "description": "Whether to analyze how often unresolved items correlate with repeat incidents."
+                }
+              ]
+            }
+          },
+          "status": "404",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        },
+        {
+          "name": "500",
+          "originalRequest": {
+            "method": "GET",
+            "description": "Get analytics on action item completion and aging\n\nResponses:\n- 200: Analytics report retrieved successfully.\n- 400: Response\n- 404: Response\n- 500: Response",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics?scope={{scope}}&scopeId={{scopeId}}&windowDays={{windowDays}}&includeRepeatIncidentCorrelation={{includeRepeatIncidentCorrelation}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "{{scope}}",
+                  "disabled": false,
+                  "description": "Aggregation scope."
+                },
+                {
+                  "key": "scopeId",
+                  "value": "{{scopeId}}",
+                  "disabled": true,
+                  "description": "Required when scope = TEAM or ENGINEER."
+                },
+                {
+                  "key": "windowDays",
+                  "value": "{{windowDays}}",
+                  "disabled": true,
+                  "description": "Analysis window in days."
+                },
+                {
+                  "key": "includeRepeatIncidentCorrelation",
+                  "value": "{{includeRepeatIncidentCorrelation}}",
+                  "disabled": true,
+                  "description": "Whether to analyze how often unresolved items correlate with repeat incidents."
+                }
+              ]
+            }
+          },
+          "status": "500",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "body": ""
+        }
+      ]
+    }
+  ]
+}
